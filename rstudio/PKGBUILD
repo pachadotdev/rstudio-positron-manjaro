@@ -1,0 +1,49 @@
+# Maintainer: Mauricio Pacha Vargas Sepulveda <m.vargas.sepulveda@gmail.com>
+pkgname=rstudio-desktop
+pkgver=2025.05.1
+pkgrel=1
+pkgdesc="RStudio Desktop - IDE for R"
+arch=('x86_64')
+url="https://www.rstudio.com/"
+license=('AGPL3')
+depends=('r' 'hicolor-icon-theme' 'shared-mime-info' 'openssl' 'sqlite' 'postgresql-libs' 
+         'libedit' 'pam' 'boost-libs' 'qt6-base' 'qt6-webengine' 'qt6-sensors' 'qt6-svg'
+         'mathjax' 'pandoc' 'dbus' 'gtk3' 'libnotify' 'alsa-lib' 'libcups' 'libxtst' 'libxss' 'nss')
+makedepends=('binutils')
+source=("https://download1.rstudio.org/electron/jammy/amd64/rstudio-2025.05.1-513-amd64.deb")
+sha256sums=('SKIP') # Replace with actual checksum
+
+sha256sums=('SKIP') # Replace with actual checksum
+
+package() {
+  cd "$srcdir"
+  
+  # Extract the .deb file
+  ar x rstudio-*.deb
+  tar -xf data.tar.xz -C "$pkgdir"
+  
+  # Check what was actually extracted and adjust paths accordingly
+  if [ -d "$pkgdir/usr/lib/rstudio" ]; then
+    # Fix permissions for rstudio directory
+    find "$pkgdir/usr/lib/rstudio" -type f -exec chmod 755 {} \;
+    # Create symlink for the binary
+    mkdir -p "$pkgdir/usr/bin"
+    ln -s /usr/lib/rstudio/rstudio "$pkgdir/usr/bin/rstudio"
+  elif [ -d "$pkgdir/opt/rstudio" ]; then
+    # Fix permissions for opt/rstudio directory  
+    find "$pkgdir/opt/rstudio" -type f -exec chmod 755 {} \;
+    # Create symlink for the binary
+    mkdir -p "$pkgdir/usr/bin"
+    ln -s /opt/rstudio/rstudio "$pkgdir/usr/bin/rstudio"
+  else
+    # Let's see what was actually extracted
+    echo "Checking extracted contents..."
+    find "$pkgdir" -name "*rstudio*" -type f | head -5
+    find "$pkgdir" -type d | head -10
+  fi
+  
+  # Fix general permissions
+  find "$pkgdir" -type d -exec chmod 755 {} \;
+  
+  # The .deb already includes the desktop entry and icon, so we don't need to create them
+}

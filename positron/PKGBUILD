@@ -1,0 +1,43 @@
+# Maintainer: Mauricio Pacha Vargas Sepulveda <m.vargas.sepulveda@gmail.com>
+pkgname=positron
+pkgver=2025.09.0
+pkgrel=6
+pkgdesc="Positron IDE for Data Science"
+arch=('x86_64')
+url="https://positron.posit.co/"
+license=('Elastic License 2.0')
+depends=('glibc' 'dbus' 'libx11' 'libxcomposite' 'libxdamage' 'libxkbfile' 'nspr' 'nss' 'gtk3' 'libnotify' 'alsa-lib' 'libcups' 'libxtst' 'libxss')
+makedepends=('binutils')
+source=("https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2025.09.0-139-x64.deb")
+sha256sums=('5e5463fb51a6a3b1d4ce5b9e86627856370859ba969769dc07475fc82ea2cfc2')
+
+package() {
+  cd "$srcdir"
+  
+  # Extract the .deb file
+  ar x Positron-*.deb
+  tar -xf data.tar.xz -C "$pkgdir"
+  
+  # Check what was actually extracted and adjust paths accordingly
+  if [ -d "$pkgdir/usr/lib/positron" ]; then
+    # Fix permissions for positron directory
+    find "$pkgdir/usr/lib/positron" -type f -exec chmod 755 {} \;
+    # Create symlink for the binary
+    mkdir -p "$pkgdir/usr/bin"
+    ln -s /usr/lib/positron/positron "$pkgdir/usr/bin/positron"
+  elif [ -d "$pkgdir/opt/positron" ]; then
+    # Fix permissions for opt/positron directory
+    find "$pkgdir/opt/positron" -type f -exec chmod 755 {} \;
+    # Create symlink for the binary
+    mkdir -p "$pkgdir/usr/bin"
+    ln -s /opt/positron/positron "$pkgdir/usr/bin/positron"
+  else
+    # Let's see what was actually extracted
+    echo "Checking extracted contents..."
+    find "$pkgdir" -name "*positron*" -type f | head -5
+    find "$pkgdir" -type d | head -10
+  fi
+  
+  # Fix general permissions
+  find "$pkgdir" -type d -exec chmod 755 {} \;
+}
